@@ -1,5 +1,10 @@
 Revision history for Perl script uncpan.
 
+1.06    2004.03.17 21:16 Qing-Jie Zhou
+    * Remove starting ./ to handle special tar files, such as DateTime-Format-Strptime-1.04.tar.gz
+    * Add copyright description
+    * Change t/uncpan.t to t/00base.t
+
 1.05    2004.03.09 22:50 Qing-Jie Zhou
     * add support to handle special tar files, such as Zanas-0.96.tar.gz
     * enhance help messages

@@ -74,7 +74,7 @@ sub clear_testenv {
 		testtmp/testtgz.tgz
 		testtmp/testzip/Makefile.PL
 		testtmp/testzip
-		testtmp/testzip.tgz
+		testtmp/testzip.zip
 		testtmp
 	) ) {
 		unlink $_ if -f $_;

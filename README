@@ -1,4 +1,4 @@
-uncpan version 1.05
+uncpan
 ========================
 
 Utility to get and untar CPAN files
@@ -69,8 +69,7 @@ BUGS, REQUESTS, COMMENTS
     Please report any requests, suggestions or bugs via
     http://rt.cpan.org/NoAuth/ReportBug.html?Queue=uncpan
 
-AUTHOR
-    Qing-Jie Zhou, qjzhou@hotmail.com
-
-SEE ALSO
-    CPAN, CPANPLUS, LWP
+COPYRIGHT AND LICENCE
+    Copyright 2003-2004 Qing-Jie Zhou <qjzhou@hotmail.com>
+    This library is free software; you can redistribute it and/or modify it
+	under the same terms as Perl itself.

@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-our $VERSION = "1.05";
+our $VERSION = "1.06";
 our $cpan_url_base = "http://www.cpan.org/authors/id/";
 our $display_left_len = 45;
 our $display_right_len = 34;
@@ -142,6 +142,8 @@ sub process_file {
 
 	# Check Whether it's a valid cpan release
 	# rules: first is a directory, and other files resides under this directory
+	$_=~s/^\.[\/\\]// foreach @filelists;	# remove starting ./
+
 	my $dir = shift @filelists;
 	unless( defined( $dir ) ) {	print_right "FAIL", "Archive is empty"; return; }
 	if( $dir =~ /^([^\/]+\/)\w/ ) {	# no directory specified in tar file
@@ -291,12 +293,15 @@ Utility to get and untar CPAN files.
 Please report any requests, suggestions or bugs via
 http://rt.cpan.org/NoAuth/ReportBug.html?Queue=uncpan
 
-=head1 AUTHOR
-
-Qing-Jie Zhou E<lt>qjzhou@hotmail.comE<gt>
-
 =head1 SEE ALSO
 
 L<CPAN>, L<CPANPLUS>, L<LWP>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright 2003-2004 Qing-Jie Zhou E<lt>qjzhou@hotmail.comE<gt>
+
+This library is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself.
 
 =cut

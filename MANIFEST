@@ -3,7 +3,7 @@ Makefile.PL             Generate Makefile
 MANIFEST                This list of files
 META.yml                Module meta-data
 README                  Readme
-t/uncpan.t              Test program
+t/00base.t              Test program
 testcase/badfile        Test case to provide bad file
 testcase/badtar.tgz     Test case to test bad tar files
 testcase/nodir.tgz      Test case to test no leading dir tar files
