@@ -1,4 +1,4 @@
-uncpan version 1.02
+uncpan version 1.03
 ========================
 
 Utility to get and untar CPAN files
@@ -14,7 +14,7 @@ To install this module type the following:
 
 DEPENDENCIES
 
-This module requires these other modules and libraries:
+This script requires these other modules and libraries:
 
         Getopt::Std
         IO::Dir

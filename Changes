@@ -1,6 +1,9 @@
 Revision history for Perl script uncpan.
 
-1.01    2004.03.08 22:33 Qing-Jie Zhou
+1.03    2004.03.08 22:45 Qing-Jie Zhou
+	* correct wrong descriptions in README and Changes
+
+1.02    2004.03.08 22:33 Qing-Jie Zhou
 	* correct bugs in test.pl
 
 1.01    2004.03.08 00:10 Qing-Jie Zhou
