@@ -48,10 +48,10 @@ sub make_testenv {
 	copy("testcase/testtgz.tgz", "testtmp/testtgz.tgz");
 	copy("testcase/testzip.zip", "testtmp/testzip.zip");
 	ok(
-		-d "testtmp" and
-		-f "testtmp/badfile" and
-		-f "testtmp/badtar.tgz" and
-		-f "testtmp/testtgz.tgz" and
+		-d "testtmp" &&
+		-f "testtmp/badfile" &&
+		-f "testtmp/badtar.tgz" &&
+		-f "testtmp/testtgz.tgz" &&
 		-f "testtmp/testzip.zip", "Make testtmp" );
 }
 

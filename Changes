@@ -1,5 +1,8 @@
 Revision history for Perl script uncpan.
 
+1.01    2004.03.08 22:33 Qing-Jie Zhou
+	* correct bugs in test.pl
+
 1.01    2004.03.08 00:10 Qing-Jie Zhou
 	* add license and correct META.yml
 
