@@ -1,4 +1,7 @@
 Revision history for Perl script uncpan.
 
+1.01    2004.03.08 00:10 Qing-Jie Zhou
+	* add license and correct META.yml
+
 1.00    2004.03.07 01:15 Qing-Jie Zhou
 	- original version

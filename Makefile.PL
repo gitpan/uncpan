@@ -5,6 +5,7 @@ WriteMakefile(
     'NAME'			=> 'uncpan',
     'VERSION_FROM'	=> 'uncpan', # finds $VERSION
 	'EXE_FILES'		=> [ 'uncpan' ],
+	'NO_META'   	=> 1,
     'PREREQ_PM'		=> {
     		Getopt::Std,
     		IO::Dir,

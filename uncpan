@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-our $VERSION = "1.00";
+our $VERSION = "1.01";
 our $cpan_url_base = "http://www.cpan.org/authors/id/";
 our $display_left_len = 45;
 our $display_right_len = 34;

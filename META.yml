@@ -1,13 +1,14 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         uncpan
-version:      1.00
+version:      1.01
 version_from: uncpan
+license:      perl
 installdirs:  site
 requires:
     Archive::Tar:                  Archive::Zip
     File::Spec:                    File::Basename
     Getopt::Std:                   IO::Dir
 
-distribution_type: module
+distribution_type: script
 generated_by: ExtUtils::MakeMaker version 6.21
