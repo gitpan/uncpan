@@ -1,0 +1,297 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+our $VERSION = "1.00";
+our $cpan_url_base = "http://www.cpan.org/authors/id/";
+our $display_left_len = 45;
+our $display_right_len = 34;
+
+use Getopt::Std;
+use IO::Dir;
+use File::Spec;
+use File::Basename;
+use Archive::Tar;
+use Archive::Zip qw( :ERROR_CODES );
+
+$|=1;
+my (%opts, $name);
+getopts( 'h', \%opts ) or $opts{h}=1;
+$name = $ARGV[0];
+&VERSION_MESSAGE if defined( $opts{h} ) or not( defined( $name ) );
+
+our %processed = ();
+foreach $name (@ARGV) {
+	if( -d $name ) {
+		&process_dir($name);
+	} elsif( -f $name ) {
+		&process_file($name);
+	} elsif( $name=~/\/\// ) {
+		&process_url($name);
+	} else {
+		&process_module($name);
+	}
+}
+
+sub VERSION_MESSAGE {
+	print <<"USAGE";
+uncpan $VERSION under perl $]
+
+Usage: uncpan [-h] [ LOCAL_DIR | LOCAL_FILE_NAME | REMOTE_URL | MODULE_NAME ] ...
+
+  uncpan -h
+    Show help
+
+  uncpan LOCAL_DIR ...
+    Process all .tar, .tgz, .tar.gz, .zip files under LOCAL_DIR
+    Uncompress and untar all valid cpan file
+
+  uncpan LOCAL_FILE_NAME ...
+    Uncompress and untar if it is a valid cpan file
+
+  uncpan REMOTE_URL ...
+    Download the file by url
+    If it is a valid cpan file, uncompress and untar to current directory
+
+  uncpan MODULE_NAME ...
+    Download the module from cpan and module CPAN is required
+    Uncompress and untar if it is a valid cpan file
+	Site http://www.cpan.org/authors/id/ will be used to download files
+
+  uncpan /xxx/ ...
+    Query module as cpan shell and call uncpan MODULE_NAME
+
+  Download issues
+    LWP modules is required to download remote files
+	If environment varibale HTTP_PROXY exists, uncpan will use it
+	If platform is win32 and Win32::TieRegistry modules exists, unpcan will
+	use proxy settings of Internet Explorer
+
+USAGE
+	exit();
+}
+
+sub print_left { printf "%-${display_left_len}.${display_left_len}s ", $_[0]; }
+sub print_right { printf "%.${display_right_len}s\n", "[" . $_[0] . "] " . $_[1]; }
+
+sub time_isostr {
+	eval 'use HTTP::Date';
+	return '' if $@;
+	return HTTP::Date::time2iso( $_[0] );
+}
+
+sub set_proxy {
+	my ( $ua ) = @_;
+	$ua->env_proxy;
+
+	# Check Win32::TieRegistry module
+	return unless $^O eq 'MSWin32';
+	my %RegHash;
+	eval 'use Win32::TieRegistry(Delimiter=>"/", TiedHash => \%RegHash);';
+	return if $@;
+
+	# Get IE registry
+	my $iekey = $RegHash{"CUser/Software/Microsoft/Windows/CurrentVersion/Internet Settings/"} or return;
+	my $ie_proxy_enable = $iekey->{"/ProxyEnable"} or return;
+	my $ie_proxy_server = $iekey->{"/ProxyServer"} or return;
+	return unless $ie_proxy_enable=~/1$/;
+
+	# Set LWP proxy
+	if( $ie_proxy_server=~/;/ ) {
+		#Multiple proxies, such as ftp=192.168.1.3:8080;...;https=192.168.1.3:8080
+		foreach ( split( /;/, $ie_proxy_server ) ) {
+			next if $_ eq '';
+			$ua->proxy( $1, "http://$2/" ) if /^(.*?)=(.*?)$/;
+		}
+	}else{
+		#Single proxy, such as 192.168.1.3:8080
+		$ua->proxy( ['http','https','ftp'], "http://$ie_proxy_server/" );
+	}
+}
+
+sub process_dir {
+	my ( $dirname ) = @_;
+	print "Process directory $dirname\n";
+	tie my %dir, 'IO::Dir', $dirname;
+	foreach (keys %dir) {
+		my $filename = File::Spec->catfile( $dirname, $_ );
+		next unless -f $filename;
+		&process_file( $filename );
+	}
+}
+
+sub process_file {
+	my ($filename) = @_;
+	print_left "  $filename";
+
+	# Parse file extension
+	unless( $filename=~/\.(tar\.gz|tar|tgz|gz|zip)$/i ) { print_right "SKIP", "Unkown file extension"; return; }
+	my $fileext = lc($1);
+
+	# Open Archive and get file lists
+	my ( $archive, @filelists );
+	if( $fileext eq 'zip' ) {
+		$archive = Archive::Zip->new( File::Spec->rel2abs( $filename ) );
+		@filelists = map( $_->fileName, $archive->members ) if defined( $archive );
+	} else {
+		$archive = Archive::Tar->new( File::Spec->rel2abs( $filename ) );
+		@filelists = $archive->list_files if defined( $archive );
+	}
+	unless( defined( $archive ) ) { print_right "FAIL", "Cannot open archive"; return; }
+
+	# Check Whether it's a valid cpan release
+	# rules: first is a directory, and other files resides under this directory
+	my $dir = shift @filelists;
+	unless( defined( $dir ) ) {	print_right "FAIL", "Archive is empty"; return; }
+	my $cpan_valid = ( scalar( @filelists ) > 0 ) &&
+		( scalar( @filelists ) == grep(/^$dir/, @filelists) );
+
+	# Caculate extract position
+	my $extract_root = dirname($filename);
+	my $extract_result_dir = File::Spec->catfile( $extract_root, $dir );
+	unless( $cpan_valid ) {
+		$extract_root = File::Spec->catfile( $extract_root,
+			basename($filename, '.tar.gz', '.tar', '.gz', '.tgz', '.zip') );
+		$extract_result_dir = $extract_root;
+		print_right "Info", "Archive is not for CPAN";
+		print_left "    [Extract to] $extract_root";
+		unshift @filelists, $dir;
+	}
+	if( -d $extract_result_dir ) { print_right "SKIP", "Exists $extract_result_dir"; return; }
+
+	# Extract it
+	my $old_dir = File::Spec->rel2abs( "." );
+	mkdir $extract_root unless -d $extract_root;
+	my $result_ok = 0;
+	if( chdir( $extract_root ) ) {
+		$result_ok = ( $fileext eq 'zip' ) ? ( $archive->extractTree==AZ_OK ) : $archive->extract;
+		chdir $old_dir;
+	}
+	if( $result_ok ) {
+		print_right "Done", sprintf( "Extracted %d file/dirs", scalar(@filelists) );
+		# remove extracted archive
+		undef $archive;
+		unlink $filename;
+	} else {
+		print_right "FAIL", "Fail during Extracting";
+	}
+}
+
+sub process_url {
+	my ( $url ) = @_;
+
+	# show url
+	my $url_show = $url;
+	$url_show = $1 if $url =~ /\/authors\/id\/(.*)$/;
+	print_left "  GET $url_show";
+
+	# skip processed
+	if( $processed{ $url } ) { print_right "SKIP", "Processed"; return; }
+	$processed{ $url } = 1;
+
+	# Determine saved filename
+	my $filename = $url;
+	$filename = $1 if $filename =~ /\/([^\/]*)$/;
+	$filename =~ s/:/\-/g;
+	if( $filename eq '' ) { print_right "FAIL", "No filename in URL"; return; }
+
+	# Construct User Agent
+	eval 'use LWP::UserAgent';
+	if( $@ ) { print_right "FAIL", "LWP is not installed"; return; }
+	my $ua = LWP::UserAgent->new;
+	$ua->agent( "uncpan $VERSION" );
+	$ua->timeout( 60 );
+	&set_proxy( $ua );
+
+	# Get it and save to file
+	my $res = $ua->get( $url, ":content_file"=>$filename );
+	if( $res->is_success ) {
+		print_right "Down", time_isostr( $res->last_modified );
+	} else {
+		print_right "FAIL", $res->status_line;
+	}
+
+	# Extract it
+	&process_file( $filename ) if $res->is_success;
+}
+
+sub process_module {
+	my ($name) = @_;
+	eval 'use CPAN';
+	if( $@ ) { print "CPAN is not installed or fail to use"; return; }
+	foreach my $mod ( CPAN::Shell->expand('Module', $name) ) {
+		my $mod_id = $mod->{ID};
+		if( defined( $mod->cpan_version ) ) {
+			$mod_id .= " " . $mod->cpan_version if $mod->cpan_version ne "undef";
+		}
+		print_left $mod_id;
+		if( not( defined( $mod->cpan_file ) ) ) {
+			print_right "FAIL", "cpan file is missing";
+		} elsif( $mod->cpan_file =~ /^contact /i ) {
+			print_right "FAIL", $mod->cpan_file;
+		} else {
+			print_right "Desc", defined( $mod->description ) ? $mod->description : "description is missing";
+			&process_url( $cpan_url_base . $mod->cpan_file );
+		}
+	}
+}
+
+1;
+__END__
+
+=head1 NAME
+
+uncpan - Utility to get and untar CPAN files
+
+=head1 SYNOPSIS
+
+  uncpan [-h] [ LOCAL_DIR | LOCAL_FILE_NAME | REMOTE_URL | MODULE_NAME ] ...
+
+=head1 ABSTRACT
+
+Utility to get and untar CPAN files.
+
+=head1 DESCRIPTION
+
+  uncpan -h
+    Show help
+
+  uncpan LOCAL_DIR ...
+    Process all .tar, .tgz, .tar.gz, .zip files under LOCAL_DIR
+    Uncompress and untar all valid cpan file
+
+  uncpan LOCAL_FILE_NAME ...
+    Uncompress and untar if it is a valid cpan file
+
+  uncpan REMOTE_URL ...
+    Download the file by url
+    If it is a valid cpan file, uncompress and untar to current directory
+
+  uncpan MODULE_NAME ...
+    Download the module from cpan and module CPAN is required
+    Uncompress and untar if it is a valid cpan file
+	Site http://www.cpan.org/authors/id/ will be used to download files
+
+  uncpan /xxx/ ...
+    Query module as cpan shell and call uncpan MODULE_NAME
+
+  Download issues
+    LWP modules is required to download remote files
+	If environment varibale HTTP_PROXY exists, uncpan will use it
+	If platform is win32 and Win32::TieRegistry modules exists, unpcan will
+	use proxy settings of Internet Explorer
+
+=head1 BUGS, REQUESTS, COMMENTS
+
+Please report any requests, suggestions or bugs via
+http://rt.cpan.org/NoAuth/ReportBug.html?Queue=uncpan
+
+=head1 AUTHOR
+
+Qing-Jie Zhou E<lt>qjzhou@hotmail.comE<gt>
+
+=head1 SEE ALSO
+
+L<CPAN>, L<CPANPLUS>, L<LWP>
+
+=cut

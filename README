@@ -1,0 +1,76 @@
+uncpan version 1.00
+========================
+
+Utility to get and untar CPAN files
+
+INSTALLATION
+
+To install this module type the following:
+
+   perl Makefile.PL
+   make
+   make test
+   make install
+
+DEPENDENCIES
+
+This module requires these other modules and libraries:
+
+        Getopt::Std
+        IO::Dir
+        File::Spec
+        File::Basename
+        Archive::Tar
+        Archive::Zip
+
+Optional modules:
+
+        CPAN
+        LWP::UserAgent
+        HTTP::Date
+        Win32::TieRegistry
+
+SYNOPSIS
+      uncpan [-h] [ LOCAL_DIR | LOCAL_FILE_NAME | REMOTE_URL | MODULE_NAME ] ...
+
+ABSTRACT
+    Utility to get and untar CPAN files.
+
+DESCRIPTION
+      uncpan -h
+        Show help
+
+      uncpan LOCAL_DIR ...
+        Process all .tar, .tgz, .tar.gz, .zip files under LOCAL_DIR
+        Uncompress and untar all valid cpan file
+
+      uncpan LOCAL_FILE_NAME ...
+        Uncompress and untar if it is a valid cpan file
+
+      uncpan REMOTE_URL ...
+        Download the file by url
+        If it is a valid cpan file, uncompress and untar to current directory
+
+      uncpan MODULE_NAME ...
+        Download the module from cpan and module CPAN is required
+        Uncompress and untar if it is a valid cpan file
+            Site http://www.cpan.org/authors/id/ will be used to download files
+
+      uncpan /xxx/ ...
+        Query module as cpan shell and call uncpan MODULE_NAME
+
+      Download issues
+        LWP modules is required to download remote files
+            If environment varibale HTTP_PROXY exists, uncpan will use it
+            If platform is win32 and Win32::TieRegistry modules exists, unpcan will
+            use proxy settings of Internet Explorer
+
+BUGS, REQUESTS, COMMENTS
+    Please report any requests, suggestions or bugs via
+    http://rt.cpan.org/NoAuth/ReportBug.html?Queue=uncpan
+
+AUTHOR
+    Qing-Jie Zhou, qjzhou@hotmail.com
+
+SEE ALSO
+    CPAN, CPANPLUS, LWP
