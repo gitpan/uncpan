@@ -1,16 +1,20 @@
 Revision history for Perl script uncpan.
 
+1.05    2004.03.09 22:50 Qing-Jie Zhou
+    * add support to handle special tar files, such as Zanas-0.96.tar.gz
+    * enhance help messages
+
 1.04    2004.03.08 23:58 Qing-Jie Zhou
-	* use t/uncpan.t instead of test.pl
+    * use t/uncpan.t instead of test.pl
 
 1.03    2004.03.08 22:45 Qing-Jie Zhou
-	* correct wrong descriptions in README and Changes
+    * correct wrong descriptions in README and Changes
 
 1.02    2004.03.08 22:33 Qing-Jie Zhou
-	* correct bugs in test.pl
+    * correct bugs in test.pl
 
 1.01    2004.03.08 00:10 Qing-Jie Zhou
-	* add license and correct META.yml
+    * add license and correct META.yml
 
 1.00    2004.03.07 01:15 Qing-Jie Zhou
-	- original version
+    - original version

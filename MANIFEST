@@ -6,6 +6,7 @@ README                  Readme
 t/uncpan.t              Test program
 testcase/badfile        Test case to provide bad file
 testcase/badtar.tgz     Test case to test bad tar files
+testcase/nodir.tgz      Test case to test no leading dir tar files
 testcase/testtgz.tgz    Test case to test good .tgz files
 testcase/testzip.zip    Test case to test good .zip files
 uncpan                  The script to get and untar CPAN files

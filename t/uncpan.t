@@ -1,4 +1,4 @@
-use Test::More tests => 13;
+use Test::More tests => 14;
 
 BEGIN { use_ok('File::Copy'); }
 
@@ -12,6 +12,9 @@ ok(-f "testtmp/testtgz/Makefile.PL", "uncpan testtmp/testtgz.tgz extract files o
 
 system("$^X uncpan testtmp/testzip.zip");
 ok(-f "testtmp/testzip/Makefile.PL", "uncpan testtmp/testzip.zip extract files ok");
+
+system("$^X uncpan testtmp/nodir.tgz");
+ok(-f "testtmp/nodir/Makefile.PL", "uncpan testtmp/nodir.tgz extract files ok");
 
 system("$^X uncpan testtmp/badtar.tgz");
 ok(-f "testtmp/badtar/Makefile.PL", "uncpan testtmp/badtar.tgz extract files ok");
@@ -45,12 +48,14 @@ sub make_testenv {
 	mkdir "testtmp";
 	copy("testcase/badfile", "testtmp/badfile");
 	copy("testcase/badtar.tgz", "testtmp/badtar.tgz");
+	copy("testcase/nodir.tgz", "testtmp/nodir.tgz");
 	copy("testcase/testtgz.tgz", "testtmp/testtgz.tgz");
 	copy("testcase/testzip.zip", "testtmp/testzip.zip");
 	ok(
 		-d "testtmp" &&
 		-f "testtmp/badfile" &&
 		-f "testtmp/badtar.tgz" &&
+		-f "testtmp/nodir.tgz" &&
 		-f "testtmp/testtgz.tgz" &&
 		-f "testtmp/testzip.zip", "Make testtmp" );
 }
@@ -61,6 +66,9 @@ sub clear_testenv {
 		testtmp/badtar/Makefile.PL
 		testtmp/badtar
 		testtmp/badtar.tgz
+		testtmp/nodir/Makefile.PL
+		testtmp/nodir
+		testtmp/nodir.tgz
 		testtmp/testtgz/Makefile.PL
 		testtmp/testtgz
 		testtmp/testtgz.tgz

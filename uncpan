@@ -2,7 +2,7 @@
 
 use strict;
 use warnings;
-our $VERSION = "1.04";
+our $VERSION = "1.05";
 our $cpan_url_base = "http://www.cpan.org/authors/id/";
 our $display_left_len = 45;
 our $display_right_len = 34;
@@ -38,6 +38,7 @@ sub VERSION_MESSAGE {
 uncpan $VERSION under perl $]
 
 Usage: uncpan [-h] [ LOCAL_DIR | LOCAL_FILE_NAME | REMOTE_URL | MODULE_NAME ] ...
+  Utility to get and untar CPAN files
 
   uncpan -h
     Show help
@@ -143,6 +144,10 @@ sub process_file {
 	# rules: first is a directory, and other files resides under this directory
 	my $dir = shift @filelists;
 	unless( defined( $dir ) ) {	print_right "FAIL", "Archive is empty"; return; }
+	if( $dir =~ /^([^\/]+\/)\w/ ) {	# no directory specified in tar file
+		unshift @filelists, $dir;
+		$dir = $1;
+	}
 	my $cpan_valid = ( scalar( @filelists ) > 0 ) &&
 		( scalar( @filelists ) == grep(/^$dir/, @filelists) );
 
